@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+    <item android:id="@+id/action_equalizer" android:title="@string/action_equalizer"
+        android:orderInCategory="100" app:showAsAction="never"
+        android:onClick="launchEQ"/>
+    <item android:id="@+id/action_reverb" android:title="@string/action_reverb"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_bitcrush" android:title="@string/action_bitcrush"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_chorus" android:title="@string/action_chorus"
+        android:orderInCategory="100" app:showAsAction="never" />
+</menu>

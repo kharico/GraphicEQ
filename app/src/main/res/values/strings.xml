@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">GraphicEQ</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="button_import">Import</string>
+    <string name="button_effects">Effects</string>
+    <string name="image_description">Upload Image Here</string>
+    <string name="action_equalizer">EQ</string>
+    <string name="action_reverb">Reverb</string>
+    <string name="action_bitcrush">Bitcrush</string>
+    <string name="action_chorus">Chorus</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
