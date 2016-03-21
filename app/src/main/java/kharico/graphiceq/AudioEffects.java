@@ -3,6 +3,7 @@ package kharico.graphiceq;
 import android.app.ActionBar;
 import android.media.MediaPlayer;
 import android.media.audiofx.Equalizer;
+import android.media.audiofx.PresetReverb;
 import android.media.audiofx.Visualizer;
 import android.util.Log;
 import android.view.Gravity;
@@ -24,6 +25,7 @@ public class AudioEffects {
     private LinearLayout mLinLayout;
     private MyGLSurfaceView eqView;
     private RelativeLayout fxView;
+    private PresetReverb pVerb;
 
     final MainActivity main;
 
@@ -33,7 +35,7 @@ public class AudioEffects {
         mLinLayout.setOrientation(LinearLayout.VERTICAL);
     }
 
-    public void setupFxAndUI(MediaPlayer mPlay) {
+    public void setupEQ(MediaPlayer mPlay) {
         // Create a VisualizerView (defined below), which will render the simplified audio
         // wave form to a Canvas.
         fxView = new RelativeLayout(this.main);
@@ -49,8 +51,6 @@ public class AudioEffects {
                 ViewGroup.LayoutParams.MATCH_PARENT, vizHeight));
 
         mVizView.setBackgroundColor(0xD9000000);
-        final int vizID = mVizView.generateViewId();
-        mVizView.setId(vizID);
         fxView.addView(mVizView);
         mLinLayout.addView(fxView);
 
@@ -78,4 +78,59 @@ public class AudioEffects {
         fxView.addView(eqView);
     }
 
+    public void setupReverb (MediaPlayer mPlay) {
+        pVerb = new PresetReverb(0, mPlay.getAudioSessionId());
+        pVerb.setEnabled(true);
+        Log.d("setupReverb", "Enabled: " + pVerb.getEnabled());
+    }
+
+    public void changeReverb(int preset){
+        pVerb.setPreset(PresetReverb.PRESET_NONE);
+
+        switch(preset) {
+            case 0: {
+                pVerb.setPreset(PresetReverb.PRESET_NONE);
+                Log.d("setupReverb", "None ");
+                break;
+            }
+            case 1: {
+                pVerb.setPreset(PresetReverb.PRESET_LARGEHALL);
+                Log.d("setupReverb", "LargeHall ");
+                break;
+            }
+            case 2: {
+                pVerb.setPreset(PresetReverb.PRESET_LARGEROOM);
+                Log.d("setupReverb", "LargeRoom ");
+                break;
+            }
+            case 3: {
+                pVerb.setPreset(PresetReverb.PRESET_MEDIUMHALL);
+                Log.d("setupReverb", "MediumHall ");
+                break;
+            }
+            case 4: {
+                pVerb.setPreset(PresetReverb.PRESET_MEDIUMROOM);
+                Log.d("setupReverb", "MediumRoom ");
+                break;
+            }
+            case 5: {
+                pVerb.setPreset(PresetReverb.PRESET_PLATE);
+                Log.d("setupReverb", "Plate ");
+                break;
+            }
+            case 6: {
+                pVerb.setPreset(PresetReverb.PRESET_SMALLROOM);
+                Log.d("setupReverb", "SmallRoom ");
+                break;
+            }
+        }
+    }
+
+    public void setupBitcrush(MediaPlayer mPlay){
+
+    }
+
+    public void setupChorus(MediaPlayer mPlay){
+
+    }
 }

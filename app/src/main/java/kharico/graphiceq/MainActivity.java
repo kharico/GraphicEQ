@@ -2,7 +2,13 @@ package kharico.graphiceq;
 
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
@@ -18,14 +24,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import android.os.Handler;
 import android.widget.PopupMenu;
-
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
 
 
 import static android.media.AudioManager.STREAM_MUSIC;
 
 public class MainActivity extends AppCompatActivity implements
         MediaPlayer.OnPreparedListener, MediaController.MediaPlayerControl,
-        MediaPlayer.OnCompletionListener {
+        MediaPlayer.OnCompletionListener, AdapterView.OnItemSelectedListener {
 
     private Intent mRequestFileIntent;
     private ParcelFileDescriptor mInputPFD;
@@ -78,14 +85,47 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void openEffects(View view) {
-        PopupMenu popup= new PopupMenu(this,view);
-        popup.inflate(R.menu.menu_effects);
-        popup.show();
+        PopupMenu popupFX= new PopupMenu(this,view);
+        popupFX.inflate(R.menu.menu_effects);
+        popupFX.show();
     }
 
     public void launchEQ(MenuItem item) {
-        Afx.setupFxAndUI(mPlay);
+        Afx.setupEQ(mPlay);
         Afx.viz.setEnabled(true);
+    }
+
+    public void openReverb(MenuItem item) {
+        RelativeLayout reverbView = new RelativeLayout(this);
+        RelativeLayout.LayoutParams rvParams = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        reverbView.setLayoutParams(rvParams);
+
+        Spinner selectReverb = new Spinner(this);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.presets_reverb, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectReverb.setAdapter(adapter);
+        RelativeLayout.LayoutParams spinnerParams = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+
+        LinearLayout mLinLayout = (LinearLayout)findViewById(R.id.main_view);
+        mLinLayout.setOrientation(LinearLayout.VERTICAL);
+        reverbView.addView(selectReverb);
+        mLinLayout.addView(reverbView);
+
+        selectReverb.setOnItemSelectedListener(this);
+        Afx.setupReverb(mPlay);
+    }
+
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        int verbage = parent.getSelectedItemPosition();
+        Log.d("onItemSelected", "verbage: " + verbage);
+        Afx.changeReverb(verbage);
+    }
+
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 
     public void requestFile() {
