@@ -5,7 +5,8 @@
         android:orderInCategory="100" app:showAsAction="never"
         android:onClick="launchEQ"/>
     <item android:id="@+id/action_reverb" android:title="@string/action_reverb"
-        android:orderInCategory="100" app:showAsAction="never" />
+        android:orderInCategory="100" app:showAsAction="never"
+        android:onClick="openReverb"/>
     <item android:id="@+id/action_bitcrush" android:title="@string/action_bitcrush"
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_chorus" android:title="@string/action_chorus"

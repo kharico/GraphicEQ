@@ -10,6 +10,12 @@
     <string name="action_reverb">Reverb</string>
     <string name="action_bitcrush">Bitcrush</string>
     <string name="action_chorus">Chorus</string>
+    <string name="preset_largehall">Large Hall</string>
+    <string name="preset_largeroom">Large Room</string>
+    <string name="preset_mediumhall">Medium Hall</string>
+    <string name="preset_mediumroom">Medium Room</string>
+    <string name="preset_plate">Plate</string>
+    <string name="preset_smallroom">Small Room</string>
 
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
