@@ -8,5 +8,6 @@
         <item>Medium Room</item>
         <item>Plate</item>
         <item>Small Room</item>
+        <item>Custom</item>
     </string-array>
 </resources>
