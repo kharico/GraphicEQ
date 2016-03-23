@@ -2,14 +2,20 @@ package kharico.graphiceq;
 
 import android.app.ActionBar;
 import android.media.MediaPlayer;
+import android.media.audiofx.EnvironmentalReverb;
 import android.media.audiofx.Equalizer;
 import android.media.audiofx.PresetReverb;
 import android.media.audiofx.Visualizer;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+
+import org.xmlpull.v1.XmlPullParser;
 
 
 /**
@@ -26,6 +32,20 @@ public class AudioEffects {
     private MyGLSurfaceView eqView;
     private RelativeLayout fxView;
     private PresetReverb pVerb;
+    private EnvironmentalReverb eVerb;
+
+    private GridLayout EnvironmentView;
+    private SeekBar reverbDelay;
+    private SeekBar delayLevel;
+    private SeekBar preDelay;
+    private SeekBar hfDecayRatio;
+    private SeekBar hfDecayLevel;
+    private SeekBar decayTime;
+    private SeekBar Reflection;
+    private SeekBar Diffusion;
+    private SeekBar Density;
+    private SeekBar roomLevel;
+
 
     final MainActivity main;
 
@@ -80,15 +100,17 @@ public class AudioEffects {
 
     public void setupReverb (MediaPlayer mPlay) {
         pVerb = new PresetReverb(0, mPlay.getAudioSessionId());
-        pVerb.setEnabled(true);
-        Log.d("setupReverb", "Enabled: " + pVerb.getEnabled());
+        eVerb = new EnvironmentalReverb(0, mPlay.getAudioSessionId());
     }
 
     public void changeReverb(int preset){
         pVerb.setPreset(PresetReverb.PRESET_NONE);
+        pVerb.setEnabled(true);
+        eVerb.setEnabled(false);
 
         switch(preset) {
             case 0: {
+
                 pVerb.setPreset(PresetReverb.PRESET_NONE);
                 Log.d("setupReverb", "None ");
                 break;
@@ -123,7 +145,151 @@ public class AudioEffects {
                 Log.d("setupReverb", "SmallRoom ");
                 break;
             }
+            case 7: {
+                customReverb();
+                Log.d("setupReverb", "Custom ");
+                break;
+            }
         }
+    }
+
+    public void customReverb() {
+        pVerb.setEnabled(false);
+        eVerb.setEnabled(true);
+
+        // Container for Environment Reverb Settings
+        EnvironmentView = new GridLayout(this.main);
+        LayoutInflater inflater = this.main.getLayoutInflater();
+        EnvironmentView = (GridLayout) inflater.inflate(R.layout.environtextview, null);
+        //EnvironmentView = (GridLayout) EnvironmentView.findViewById(R.id.environview);
+
+        if (EnvironmentView == null) {
+            Log.d("customReverb", "View is NULL");
+        }
+        else {
+            Log.d("customReverb", "OK ");
+        }
+        mLinLayout.addView(EnvironmentView);
+
+
+        //Containers for Individual Settings
+
+        reverbDelay = new SeekBar(this.main);
+        delayLevel = new SeekBar(this.main);
+        preDelay = new SeekBar(this.main);
+        hfDecayRatio = new SeekBar(this.main);
+        hfDecayLevel = new SeekBar(this.main);
+        decayTime = new SeekBar(this.main);
+        Reflection = new SeekBar(this.main);
+        Diffusion = new SeekBar(this.main);
+        Density = new SeekBar(this.main);
+        roomLevel = new SeekBar(this.main);
+
+        reverbDelay = (SeekBar) EnvironmentView.findViewById(R.id.reverbDelay);
+        delayLevel = (SeekBar) EnvironmentView.findViewById(R.id.delayLevel);
+        preDelay = (SeekBar) EnvironmentView.findViewById(R.id.preDelay);
+        hfDecayRatio = (SeekBar) EnvironmentView.findViewById(R.id.hfDecayRatio);
+        hfDecayLevel = (SeekBar) EnvironmentView.findViewById(R.id.hfDecayLevel);
+        decayTime = (SeekBar) EnvironmentView.findViewById(R.id.decayTime);
+        Reflection = (SeekBar) EnvironmentView.findViewById(R.id.Reflection);
+        Diffusion = (SeekBar) EnvironmentView.findViewById(R.id.Diffusion);
+        Density = (SeekBar) EnvironmentView.findViewById(R.id.Density);
+        roomLevel = (SeekBar) EnvironmentView.findViewById(R.id.roomLevel);
+
+        reverbDelay.setMax(100);
+        delayLevel.setMax(11000);
+        preDelay.setMax(300);
+        hfDecayRatio.setMax(1900);
+        hfDecayLevel.setMax(9000);
+        decayTime.setMax(19900);
+        Reflection.setMax(10000);
+        Diffusion.setMax(1000);
+        Density.setMax(1000);
+        roomLevel.setMax(9000);
+
+        reverbDelay.setProgress(0);
+        delayLevel.setProgress(3000);
+        preDelay.setProgress(0);
+        hfDecayRatio.setProgress(320);
+        hfDecayLevel.setProgress(9000);
+        decayTime.setProgress(1390);
+        Reflection.setProgress(9000);
+        Diffusion.setProgress(1000);
+        Density.setProgress(1000);
+        roomLevel.setProgress(3000);
+
+        initializeSeekBarListener(reverbDelay);
+        initializeSeekBarListener(delayLevel);
+        initializeSeekBarListener(preDelay);
+        initializeSeekBarListener(hfDecayRatio);
+        initializeSeekBarListener(hfDecayLevel);
+        initializeSeekBarListener(decayTime);
+        initializeSeekBarListener(Reflection);
+        initializeSeekBarListener(Diffusion);
+        initializeSeekBarListener(Density);
+        initializeSeekBarListener(roomLevel);
+
+    }
+
+    public void initializeSeekBarListener (final SeekBar bar) {
+
+        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            short progress = 0;
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
+                progress = (short)progressValue;
+
+                if (bar == reverbDelay) {
+                    eVerb.setReverbDelay(progress);
+                }
+                else if (bar == delayLevel) {
+                    progress -= 9000;
+                    eVerb.setReverbLevel(progress);
+                }
+                else if (bar == preDelay) {
+                    eVerb.setReflectionsDelay(progress);
+                }
+                else if (bar == hfDecayRatio) {
+                    progress += 100;
+                    eVerb.setDecayHFRatio(progress);
+                }
+                else if (bar == hfDecayLevel) {
+                    progress -= 9000;
+                    eVerb.setRoomHFLevel(progress);
+                }
+                else if (bar == decayTime) {
+                    progress += 100;
+                    eVerb.setDecayTime(progress);
+                }
+                else if (bar == Reflection) {
+                    progress -= 9000;
+                    eVerb.setReflectionsLevel(progress);
+                }
+                else if (bar == Diffusion) {
+                    eVerb.setDiffusion(progress);
+                }
+                else if (bar == Density) {
+                    eVerb.setDensity(progress);
+                }
+                else if (bar == roomLevel) {
+                    progress -= 9000;
+                    eVerb.setRoomLevel(progress);
+                }
+
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
     }
 
     public void setupBitcrush(MediaPlayer mPlay){
