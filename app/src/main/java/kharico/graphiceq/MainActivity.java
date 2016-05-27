@@ -1,7 +1,10 @@
 package kharico.graphiceq;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.MediaPlayer;
+import android.provider.MediaStore;
+import android.support.v4.content.CursorLoader;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
@@ -40,6 +43,9 @@ public class MainActivity extends AppCompatActivity implements
     private AudioController mCtrl;
     private Handler handler = new Handler();
     private AudioEffects Afx;
+    static String nativeURI;
+    static int uriFlag = 0;
+    static String currentFx;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +77,14 @@ public class MainActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
+    /** Called when the activity is about to be destroyed. */
+    @Override
+    protected void onDestroy()
+    {
+        shutdown();
+        super.onDestroy();
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         mCtrl.show();
@@ -81,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements
         mRequestFileIntent = new Intent(Intent.ACTION_GET_CONTENT);
         mRequestFileIntent.setType("audio/*");
         requestFile();
-
     }
 
     public void openEffects(View view) {
@@ -95,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements
         Afx.viz.setEnabled(true);
     }
 
-    public void openReverb(MenuItem item) {
+    public void launchReverb(MenuItem item) {
         RelativeLayout reverbView = new RelativeLayout(this);
         RelativeLayout.LayoutParams rvParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -115,13 +128,51 @@ public class MainActivity extends AppCompatActivity implements
         mLinLayout.addView(reverbView);
 
         selectReverb.setOnItemSelectedListener(this);
+        currentFx = "Reverb";
         Afx.setupReverb(mPlay);
     }
 
+    public void launchBitcrush(MenuItem item) {
+        RelativeLayout bitView = new RelativeLayout(this);
+        RelativeLayout.LayoutParams bitParams = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        bitView.setLayoutParams(bitParams);
+
+        Spinner selectBitDepth = new Spinner(this);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.presets_bitcrush, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectBitDepth.setAdapter(adapter);
+        RelativeLayout.LayoutParams spinnerParams = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+
+        LinearLayout mLinLayout = (LinearLayout)findViewById(R.id.main_view);
+        mLinLayout.setOrientation(LinearLayout.VERTICAL);
+        bitView.addView(selectBitDepth);
+        mLinLayout.addView(bitView);
+
+        selectBitDepth.setOnItemSelectedListener(this);
+        currentFx = "Bitcrush";
+        if (nativeURI != null) {
+            Afx.setupBitcrush(nativeURI, uriFlag);
+        }
+    }
+
+    public void launchChorus(MenuItem item) {
+        if (nativeURI != null) {
+            Afx.setupChorus(nativeURI, uriFlag);
+        }
+    }
+
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        int verbage = parent.getSelectedItemPosition();
-        Log.d("onItemSelected", "verbage: " + verbage);
-        Afx.changeReverb(verbage);
+        int menuValue = parent.getSelectedItemPosition();
+        Log.d("onItemSelected", "verbage: " + menuValue);
+        if (currentFx.equals("Reverb")) {
+            Afx.changeReverb(menuValue);
+        }
+        else if (currentFx.equals("Bitcrush")) {
+            Afx.changeBitdepth(menuValue);
+        }
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
@@ -185,8 +236,23 @@ public class MainActivity extends AppCompatActivity implements
             }
             // Get a regular file descriptor for the file
             FileDescriptor fd = mInputPFD.getFileDescriptor();
+            Log.d("onActivityResult", "URI: " + returnIntent.toString());
+            nativeURI = getPath(returnUri);
+            uriFlag = returnIntent.getFlags();
+
             playAudio(fd);
         }
+    }
+
+    public String getPath(Uri uri) {
+        String[] projection = { MediaStore.Audio.Media.DATA };
+        //Cursor cursor = managedQuery(uri, projection, null, null, null);
+        //startManagingCursor(cursor);
+        CursorLoader loader = new CursorLoader(this, uri, projection, null, null, null);
+        Cursor cursor = loader.loadInBackground();
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        return cursor.getString(column_index);
     }
 
     //Implement MediaController methods
@@ -238,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
     public void onCompletion(MediaPlayer mediaplayer) {
-        Log.i("onCompletion","Audio done playing");
+        Log.i("onCompletion", "Audio done playing");
         if (!mPlay.isLooping() && mCtrl.isLooping) {
             mPlay.setLooping(true);
             mPlay.seekTo(0);
@@ -249,5 +315,8 @@ public class MainActivity extends AppCompatActivity implements
             mPlay.setLooping(false);
         }
     }
+
+    // native audio methods
+    public static native void shutdown();
 }
 

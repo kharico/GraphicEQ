@@ -1,11 +1,14 @@
 package kharico.graphiceq;
 
 import android.app.ActionBar;
+import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.audiofx.EnvironmentalReverb;
 import android.media.audiofx.Equalizer;
 import android.media.audiofx.PresetReverb;
 import android.media.audiofx.Visualizer;
+import android.os.Build;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -46,8 +49,10 @@ public class AudioEffects {
     private SeekBar Density;
     private SeekBar roomLevel;
 
-
     final MainActivity main;
+
+    private boolean nativeAudioOn = false;
+    private boolean uriPlaying = false;
 
     public AudioEffects(MainActivity main) {
         this.main = main;
@@ -292,11 +297,92 @@ public class AudioEffects {
         });
     }
 
-    public void setupBitcrush(MediaPlayer mPlay){
+    public void setupBitcrush(String URI, int uriFlag){
+        if (!nativeAudioOn) {
+            setupNativeAudio(URI, uriFlag);
+        }
 
+        boolean created = false;
+        created = createUriAudioPlayer(URI, uriFlag);
+        setPlayingUriAudioPlayer(true);
     }
 
-    public void setupChorus(MediaPlayer mPlay){
+    public void setupChorus(String URI, int uriFlag){
+        if (!nativeAudioOn) {
+            setupNativeAudio(URI, uriFlag);
+        }
 
+        boolean created = false;
+        created = createUriAudioPlayer(URI, uriFlag);
+        setPlayingUriAudioPlayer(true);
+        SetChorus();
     }
+
+    public void changeBitdepth(int preset){
+        switch(preset) {
+            case 0: {
+                SetBitCrush(16);
+                break;
+            }
+            case 1: {
+                SetBitCrush(12);
+                break;
+            }
+            case 2: {
+                SetBitCrush(8);
+                break;
+            }
+            case 3: {
+                SetBitCrush(4);
+                break;
+            }
+            case 4: {
+                SetBitCrush(2);
+                break;
+            }
+            case 5: {
+                SetBitCrush(1);
+                break;
+            }
+        }
+    }
+
+    public void setupNativeAudio(String URI, int uriFlag){
+
+        createEngine();
+
+        int sampleRate = 0;
+        int bufSize = 0;
+        /*
+         * retrieve fast audio path sample rate and buf size; if we have it, we pass to native
+         * side to create a player with fast audio enabled [ fast audio == low latency audio ];
+         * IF we do not have a fast audio path, we pass 0 for sampleRate, which will force native
+         * side to pick up the 8Khz sample rate.
+         */
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            AudioManager myAudioMgr = (AudioManager) main.getSystemService(Context.AUDIO_SERVICE);
+            String nativeParam = myAudioMgr.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+            sampleRate = Integer.parseInt(nativeParam);
+            nativeParam = myAudioMgr.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+            bufSize = Integer.parseInt(nativeParam);
+        }
+
+        createBufferQueueAudioPlayer(sampleRate, bufSize);
+
+        nativeAudioOn = true;
+    }
+
+    public static native void createEngine();
+    public static native void createBufferQueueAudioPlayer(int sampleRate, int samplesPerBuf);
+    public static native boolean createUriAudioPlayer(String URI, int uriFlag);
+    public static native void setPlayingUriAudioPlayer(boolean isPlaying);
+    public static native void SetBitCrush(int BitDepth);
+    public static native void SetChorus();
+
+    /** Load jni .so on initialization */
+    static {
+        System.loadLibrary("native-audio-jni");
+    }
+
+
 }
