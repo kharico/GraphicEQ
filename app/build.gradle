@@ -1,25 +1,88 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.model.application'
 
-android {
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+model {
+    android {
+        compileSdkVersion  = 22
+        buildToolsVersion = "22.0.1"
 
-    defaultConfig {
-        applicationId "kharico.audioimportexport"
-        minSdkVersion 17
-        targetSdkVersion 22
-        versionCode 1
-        versionName "1.0"
+        defaultConfig.with {
+            applicationId = "kharico.audioimportexport"
+            minSdkVersion.apiLevel = 18
+            targetSdkVersion.apiLevel = 22
+            versionCode = 1
+            versionName = "1.0"
+
+
+            buildConfigFields.with {
+                create() {
+                    type = "int"
+                    name = "VALUE"
+                    value = "1"
+
+                }
+            }
+
+        }
     }
-    buildTypes {
+
+    android.sources {
+        main {
+            jni {
+                source {
+                    srcDirs = []
+                }
+            }
+
+            jniLibs {
+                source {
+                    srcDirs += ['src/main/libs']
+                }
+            }
+        }
+    }
+
+    android.ndk {
+        moduleName = "native-audio-jni"
+        ldLibs += "OpenSLES"
+        ldLibs += "log"
+        stl = "stlport_shared"
+    }
+
+    android.buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled = false
+            proguardFiles += file('proguard-rules.pro')
+        }
+    }
+
+    android.productFlavors {
+        create("x86") {
+            ndk.with {
+                abiFilters += "x86"
+            }
+        }
+        create("mips") {
+            ndk.with {
+                abiFilters += "mips"
+            }
+        }
+        create("armv7") {
+            ndk.with {
+                abiFilters += "armeabi-v7a"
+            }
+        }
+        create("arm") {
+            ndk.with {
+                abiFilters += "armeabi"
+            }
+        }
+        create("fat") {
+
         }
     }
 }
-
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.2.1'
 }
+
